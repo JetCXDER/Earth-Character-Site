@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 function Globe() {
   useEffect(() => {
@@ -11,28 +12,47 @@ function Globe() {
       0.1,
       1000,
     );
+    camera.position.z = 5;
+
+    //Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
     // Texture loader
     const textureLoader = new THREE.TextureLoader();
-    const earthTexture = textureLoader.load("/src/assets/earth.jpg");
+    const earthTexture4k = textureLoader.load("/src/assets/earth4k.jpg");
+    const earthTexture8k = textureLoader.load("/src/assets/earth8k.jpg");
 
     // Sphere (Earth with texture)
     const geometry = new THREE.SphereGeometry(2, 32, 32);
-    const material = new THREE.MeshBasicMaterial({
-      map: earthTexture,
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
 
-    camera.position.z = 5;
+    //Materials for each resolutionn
+    const material4k = new THREE.MeshBasicMaterial({
+      map: earthTexture4k,
+    });
+    const material8k = new THREE.MeshBasicMaterial({
+      map: earthTexture8k,
+    });
+
+    //LOD System
+    const lod = new THREE.LOD();
+    lod.addLevel(new THREE.Mesh(geometry, material4k), 30); //For far away texture
+    lod.addLevel(new THREE.Mesh(geometry, material8k), 0); //For Close Up detail
+
+    scene.add(lod);
+
+    //OribitalControls for zoom + rotation
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enabkeZoom = true; //allow Zoom
+    controls.minDistance = 3; //how close can you zoom
+    controls.maxDistance = 20; //how far you can zoom
+    controls.enablePan = false; //disable dragging sideways if you want only rotate + zoom
 
     // Animation loop
     function animate() {
       requestAnimationFrame(animate);
-      sphere.rotation.y += 0.002; // slower spin
+      lod.rotation.y += 0.001; // slower spin
       renderer.render(scene, camera);
     }
     animate();
