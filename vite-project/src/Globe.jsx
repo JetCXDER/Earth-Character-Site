@@ -21,11 +21,11 @@ function Globe() {
 
     // Texture loader
     const textureLoader = new THREE.TextureLoader();
-    const earthTexture4k = textureLoader.load("/src/assets/earth4k.jpg");
-    const earthTexture8k = textureLoader.load("/src/assets/earth8k.jpg");
+    const earthTexture4k = textureLoader.load("/earth4k.jpg");
+    const earthTexture8k = textureLoader.load("/earth8k.jpg");
 
     // Sphere (Earth with texture)
-    const geometry = new THREE.SphereGeometry(2, 32, 32);
+    const geometry = new THREE.SphereGeometry(2, 128, 128);
 
     //Materials for each resolutionn
     const material4k = new THREE.MeshBasicMaterial({
@@ -44,25 +44,56 @@ function Globe() {
 
     //OribitalControls for zoom + rotation
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enabkeZoom = true; //allow Zoom
+    controls.enableZoom = true; //allow Zoom
     controls.minDistance = 3; //how close can you zoom
     controls.maxDistance = 20; //how far you can zoom
     controls.enablePan = false; //disable dragging sideways if you want only rotate + zoom
 
     // Animation loop
+    let frameId;
     function animate() {
-      requestAnimationFrame(animate);
+      frameId = requestAnimationFrame(animate);
       lod.rotation.y += 0.001; // slower spin
       renderer.render(scene, camera);
     }
     animate();
 
+    // Resize handler
+    const onWindowResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight || 1;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    };
+
+    // Call once to ensure correct initial sizing
+    onWindowResize();
+    window.addEventListener("resize", onWindowResize, { passive: true });
+
     // Cleanup
     return () => {
-      document.body.removeChild(renderer.domElement);
+      window.removeEventListener("resize", onWindowResize);
+      if (frameId) cancelAnimationFrame(frameId);
+
+      // Dispose geometries, materials, textures
+      geometry.dispose();
+      material4k.dispose();
+      material8k.dispose();
+      earthTexture4k.dispose();
+      earthTexture8k.dispose();
+
+      // Dispose controls
+      controls.dispose();
+
+      // Remove renderer DOM and dispose renderer
+      if (renderer.domElement && renderer.domElement.parentNode) {
+        renderer.domElement.parentNode.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
     };
   }, []);
-
   return null;
 }
 
