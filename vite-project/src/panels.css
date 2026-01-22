@@ -1,0 +1,34 @@
+/* src/styles/panels.css */
+.info-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+  max-width: 90vw;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  backdrop-filter: blur(6px);
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.info-content {
+  margin-top: 10px;
+}
