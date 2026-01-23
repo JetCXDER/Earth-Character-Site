@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import MapboxGlobe from "./MapboxGlobe";
 import Globe from "./Globe";
 import InfoPanel from "./InfoPanel.jsx";
 import "./panels.css";
@@ -18,11 +19,11 @@ function App() {
   const [activeSetting, setActiveSetting] = useState(null);
 
   //Debug Flag - On/off state for Toggle buttons
-  const [showDebugButtons, setShowDebugButtons] = useState(false);
+  const [showDebugButtons /*setShowDebugButtons*/] = useState(false);
 
   return (
     <div>
-      <Globe />
+      <MapboxGlobe />
 
       {/* Top-left button to open sidebar */}
       <button

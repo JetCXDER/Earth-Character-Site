@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { feature } from "topojson-client";
 
 function Globe() {
   useEffect(() => {
@@ -41,6 +42,49 @@ function Globe() {
     lod.addLevel(new THREE.Mesh(geometry, material8k), 0); //For Close Up detail
 
     scene.add(lod);
+
+    // --- Add country borders overlay ---
+    function addCountryBorders(scene) {
+      fetch("/Topojson/world-110m.json") // put this file in public/ folder
+        .then((res) => res.json())
+        .then((worldData) => {
+          const countries = feature(
+            worldData,
+            worldData.objects.countries,
+          ).features;
+
+          countries.forEach((country) => {
+            country.geometry.coordinates.forEach((polygon) => {
+              // Handle MultiPolygon: polygon can be array of arrays
+              polygon.forEach((ring) => {
+                const points = ring.map(([lon, lat]) => {
+                  const phi = (90 - lat) * (Math.PI / 180);
+                  const theta = (lon + 180) * (Math.PI / 180);
+                  const radius = 2.05; // slightly above Earth sphere
+                  return new THREE.Vector3(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.cos(phi),
+                    radius * Math.sin(phi) * Math.sin(theta),
+                  );
+                });
+
+                const geometry = new THREE.BufferGeometry().setFromPoints(
+                  points,
+                );
+                const material = new THREE.LineBasicMaterial({
+                  color: 0xffffff,
+                }); // brighter
+                const line = new THREE.Line(geometry, material);
+                line.userData = { name: country.properties.name };
+                scene.add(line);
+              });
+            });
+          });
+        });
+    }
+
+    // Call once after globe is created
+    addCountryBorders(scene);
 
     //OribitalControls for zoom + rotation
     const controls = new OrbitControls(camera, renderer.domElement);
