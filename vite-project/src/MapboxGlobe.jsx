@@ -14,7 +14,7 @@ function MapboxGlobe() {
     // 2) Init map in globe mode
     const map = new mapboxgl.Map({
       container: mapRef.current,
-      style: "mapbox://styles/mapbox/light-v11",
+      style: "mapbox://styles/mapbox/outdoors-v12",
       projection: "globe",
       center: [0, 20],
       zoom: 1.5,
