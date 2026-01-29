@@ -102,12 +102,77 @@ function MapboxGlobe() {
         map.setFilter("country-hover", ["==", ["get", "mapbox_id"], ""]);
         map.getCanvas().style.cursor = "";
       });
+
+      // === Add red dots source ===
+      map.addSource("news-dots", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [77.2090, 28.6139] }, // Delhi
+              properties: { title: "Sample Headline", category: "breaking" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [-74.006, 40.7128] }, // New York
+              properties: { title: "Another Headline", category: "recent" }
+            }
+          ]
+        }
+      });
+
+      // === Add red dots layer ===
+      map.addLayer({
+        id: "news-dots-layer",
+        type: "circle",
+        source: "news-dots",
+        paint: {
+          "circle-radius": 6,
+          "circle-color": [
+            "match",
+            ["get", "category"],
+            "breaking", "#ff0000",
+            "recent", "#ffffff",
+            "older", "#888888",
+            "#000000"
+          ]
+        }
+      });
+
+      // === Hover event to trigger banner ===
+      let popup; //keep reference outside handlers
+
+      map.on("mouseenter", "news-dots-layer", (e) => {
+        if (!e.features || !e.features.length) return; // guard clause
+        const { title, category } = e.features[0].properties;
+        
+        //Change cursor
+        map.getCanvas().style.cursor = "pointer";
+
+        //Create popup and assign to variable
+        popup = new mapboxgl.Popup({ closeButton: false })
+          .setLngLat(e.features[0].geometry.coordinates)
+          .setHTML(`<strong>${title}</strong><br/>${category}`)
+          .addTo(map);
+      });
+
+      map.on("mouseleave", "news-dots-layer", () => {
+        map.getCanvas().style.cursor = "";
+
+        //Remove popup if it exists
+        if (popup) { 
+          popup.remove(); popup = null;
+        }
+      });
     });
 
+    // ✅ Correct cleanup
     return () => {
       map.remove();
     };
-  }, []);
+  }, []); // <-- dependency array belongs here
 
   return (
     <div
