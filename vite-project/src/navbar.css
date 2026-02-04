@@ -1,0 +1,70 @@
+.navbar {
+  height: 60px;
+  background: #1e1e2f;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+.nav-item {
+  margin: 0 10px;
+  cursor: pointer;
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  background: rgba(30,30,47,0.95);
+  color: #fff;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  margin-top: 60px; /* push below navbar */
+  position: relative;
+}
+
+.side-panel {
+  width: 300px;
+  background: rgba(30,30,47,0.9);
+  color: #fff;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.globe-container {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+}
+
+.globe-container.shrink {
+  margin-left: 300px; /* make room for side panel */
+}

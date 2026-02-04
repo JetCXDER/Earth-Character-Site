@@ -3,15 +3,13 @@ import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-function MapboxGlobe() {
+function MapboxGlobe({ setActiveNews }) {
   const mapRef = useRef(null);
 
   useEffect(() => {
-    // 1) Set your token
     mapboxgl.accessToken =
       "pk.eyJ1IjoiamV0Y3hkZXIiLCJhIjoiY21rcHU1bGNsMGh1ZTNwcXl3em1oN3B4bCJ9.pZOcgHrBXLH2GUxSrXciXg";
 
-    // 2) Init map in globe mode
     const map = new mapboxgl.Map({
       container: mapRef.current,
       style: "mapbox://styles/mapbox/outdoors-v12",
@@ -23,13 +21,8 @@ function MapboxGlobe() {
       antialias: true,
     });
 
-    // 3) Add controls
-    map.addControl(
-      new mapboxgl.NavigationControl({ visualizePitch: true }),
-      "top-right",
-    );
+    
 
-    // 4) Atmosphere + fog for globe
     map.on("style.load", () => {
       map.setFog({
         range: [0.8, 8],
@@ -41,15 +34,12 @@ function MapboxGlobe() {
       });
     });
 
-    // 5) Add country boundaries (Mapbox vector tileset)
     map.on("load", () => {
-      // Source: Mapbox's country boundaries tileset
       map.addSource("country-boundaries", {
         type: "vector",
         url: "mapbox://mapbox.country-boundaries-v1",
       });
 
-      // Fill layer (semi-transparent)
       map.addLayer({
         id: "country-fill",
         type: "fill",
@@ -61,7 +51,6 @@ function MapboxGlobe() {
         },
       });
 
-      // Stroke layer (clear green borders)
       map.addLayer({
         id: "country-stroke",
         type: "line",
@@ -73,7 +62,6 @@ function MapboxGlobe() {
         },
       });
 
-      // Hover highlight (optional)
       let hoveredId = null;
       map.addLayer({
         id: "country-hover",
@@ -83,7 +71,7 @@ function MapboxGlobe() {
         paint: {
           "fill-color": "rgba(0, 255, 0, 0.45)",
         },
-        filter: ["==", ["get", "mapbox_id"], ""], // empty filter initially
+        filter: ["==", ["get", "mapbox_id"], ""],
       });
 
       map.on("mousemove", "country-fill", (e) => {
@@ -103,7 +91,7 @@ function MapboxGlobe() {
         map.getCanvas().style.cursor = "";
       });
 
-      // === Add red dots source ===
+      // === News dots source ===
       map.addSource("news-dots", {
         type: "geojson",
         data: {
@@ -123,7 +111,6 @@ function MapboxGlobe() {
         }
       });
 
-      // === Add red dots layer ===
       map.addLayer({
         id: "news-dots-layer",
         type: "circle",
@@ -141,38 +128,30 @@ function MapboxGlobe() {
         }
       });
 
-      // === Hover event to trigger banner ===
-      let popup; //keep reference outside handlers
-
+      // === Hover/click events to trigger React banner ===
       map.on("mouseenter", "news-dots-layer", (e) => {
-        if (!e.features || !e.features.length) return; // guard clause
+        if (!e.features || !e.features.length) return;
         const { title, category } = e.features[0].properties;
-        
-        //Change cursor
+        setActiveNews({ title, category });
         map.getCanvas().style.cursor = "pointer";
-
-        //Create popup and assign to variable
-        popup = new mapboxgl.Popup({ closeButton: false })
-          .setLngLat(e.features[0].geometry.coordinates)
-          .setHTML(`<strong>${title}</strong><br/>${category}`)
-          .addTo(map);
       });
 
       map.on("mouseleave", "news-dots-layer", () => {
+        setActiveNews(null);
         map.getCanvas().style.cursor = "";
+      });
 
-        //Remove popup if it exists
-        if (popup) { 
-          popup.remove(); popup = null;
-        }
+      map.on("click", "news-dots-layer", (e) => {
+        if (!e.features || !e.features.length) return;
+        const { title, category } = e.features[0].properties;
+        setActiveNews({ title, category });
       });
     });
 
-    // ✅ Correct cleanup
     return () => {
       map.remove();
     };
-  }, []); // <-- dependency array belongs here
+  }, [setActiveNews]);
 
   return (
     <div

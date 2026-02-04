@@ -1,52 +1,58 @@
 import React, { useState } from "react";
 import MapboxGlobe from "./MapboxGlobe";
-import Globe from "./Globe";
 import InfoPanel from "./InfoPanel.jsx";
-import "./panels.css";
-import Sidebar from "./Sidebar.jsx";
 import SettingsPanel from "./SettingsPanel.jsx";
+import NewsBanner from "./NewsBanner.jsx";
+import NavBar from "./NavBar.jsx";
+import "./panels.css";
+import "./navbar.css";
 
 function App() {
+  // State for nav bar dropdowns
+  const [activeSetting, setActiveSetting] = useState(null);
+
+  // Banner state (headline from globe)
+  const [activeNews, setActiveNews] = useState(null);
+
+  // Debug panels
   const [showStats, setShowStats] = useState(false);
   const [showControls, setShowControls] = useState(false);
+  const [showDebugButtons /*setShowDebugButtons*/] = useState(false);
 
-  // Persistent positions
+  // Persistent positions for draggable panels
   const [statsPos, setStatsPos] = useState({ x: 50, y: 80 });
   const [controlsPos, setControlsPos] = useState({ x: 400, y: 80 });
 
-  // Sidebar + Settings state
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [activeSetting, setActiveSetting] = useState(null);
-
-  //Debug Flag - On/off state for Toggle buttons
-  const [showDebugButtons /*setShowDebugButtons*/] = useState(false);
-
   return (
-    <div>
-      <MapboxGlobe />
+    <div className="app-layout">
+      {/* Top Nav Bar */}
+      <NavBar onSelectSetting={(s) => setActiveSetting(s)} />
 
-      {/* Top-left button to open sidebar */}
-      <button
-        onClick={() => setShowSidebar(true)}
-        style={{ position: "absolute", top: 10, left: 10 }}
-      >
-        ☰
-      </button>
+      <div className="main-content">
+        {/* Side panel (opens when a dot is clicked) */}
+        {activeNews && (
+          <div className="side-panel">
+            <h3>{activeNews.title}</h3>
+            <p>Category: {activeNews.category}</p>
+            <button onClick={() => setActiveNews(null)}>Close</button>
+          </div>
+        )}
 
-      {/* Sidebar on the left */}
-      <Sidebar
-        show={showSidebar}
-        onClose={() => setShowSidebar(false)}
-        onSelectSetting={(setting) => setActiveSetting(setting)}
-      />
+        {/* Globe container */}
+        <div className={`globe-container ${activeNews ? "shrink" : ""}`}>
+          <MapboxGlobe setActiveNews={setActiveNews} />
+        </div>
 
-      {/* Right-side settings panel */}
-      <SettingsPanel
-        type={activeSetting}
-        onClose={() => setActiveSetting(null)}
-      />
+        {/* Settings panel (right side) */}
+        <SettingsPanel
+          type={activeSetting}
+          onClose={() => setActiveSetting(null)}
+        />
+      </div>
 
-      {/* Existing toggle buttons for draggable panels */}
+      {/* News banner at bottom */}
+      <NewsBanner data={activeNews} onClose={() => setActiveNews(null)} />
+
       {/* Debug toggle buttons (hidden unless flag is true) */}
       {showDebugButtons && (
         <>
